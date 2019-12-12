@@ -31,6 +31,15 @@ impl From<u32> for BISignVersion {
     }
 }
 
+impl ToString for BISignVersion {
+    fn to_string(&self) -> String {
+        match self {
+            BISignVersion::V2 => "V2",
+            BISignVersion::V3 => "V3",
+        }.to_string()
+    }
+}
+
 #[derive(Debug)]
 pub struct BISign {
     pub version: BISignVersion,
