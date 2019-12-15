@@ -21,9 +21,13 @@ pub fn generate_hashes<I: Seek + Read>(
     let checksum = pbo.checksum().unwrap();
     let hash1 = checksum.as_slice();
 
+    println!("Hash: {:?}", hash1);
+
     let mut h = Hasher::new(MessageDigest::sha1()).unwrap();
     h.update(hash1).unwrap();
-    h.update(&*namehash(pbo)).unwrap();
+    let namehashed = &*namehash(pbo);
+    println!("Namehash: {:?}", namehashed);
+    h.update(&*namehashed).unwrap();
     if let Some(prefix) = pbo.extensions.get("prefix") {
         h.update(prefix.as_bytes()).unwrap();
         if !prefix.ends_with('\\') {
@@ -33,7 +37,9 @@ pub fn generate_hashes<I: Seek + Read>(
     let hash2 = &*h.finish().unwrap();
 
     h = Hasher::new(MessageDigest::sha1()).unwrap();
-    h.update(&*filehash(pbo, version)).unwrap();
+    let filehashed = filehash(pbo, version);
+    println!("Filehash: {:?}", filehashed);
+    h.update(&*filehashed).unwrap();
     h.update(&*namehash(pbo)).unwrap();
     if let Some(prefix) = pbo.extensions.get("prefix") {
         h.update(prefix.as_bytes()).unwrap();
@@ -42,6 +48,10 @@ pub fn generate_hashes<I: Seek + Read>(
         }
     }
     let hash3 = &*h.finish().unwrap();
+
+    println!("H1 {:?}", hash1);
+    println!("H2 {:?}", hash2);
+    println!("H3 {:?}", hash3);
 
     (
         pad_hash(hash1, (length / 8) as usize),
@@ -74,7 +84,7 @@ pub fn namehash<I: Seek + Read>(pbo: &mut PBO<I>) -> DigestBytes {
             continue;
         }
 
-        h.update(header.filename.as_bytes()).unwrap();
+        h.update(header.filename.to_lowercase().as_bytes()).unwrap();
     }
 
     h.finish().unwrap()
@@ -86,7 +96,7 @@ pub fn filehash<I: Seek + Read>(pbo: &mut PBO<I>, version: BISignVersion) -> Dig
 
     for header in pbo.files(false).iter() {
         let ext = header.filename.split('.').last().unwrap();
-
+        println!("\t{}", header.filename);
         match version {
             BISignVersion::V2 => {
                 if ext == "paa"
@@ -123,7 +133,10 @@ pub fn filehash<I: Seek + Read>(pbo: &mut PBO<I>, version: BISignVersion) -> Dig
             }
         }
         let cursor = pbo.retrieve(&header.filename).unwrap();
-        h.update(cursor.get_ref()).unwrap();
+        h.update((&cursor).get_ref()).unwrap();
+        println!("== {} =======", header.filename);
+        println!("{:?}", String::from_utf8(cursor.bytes().map(|x| x.unwrap()).collect()));
+        println!("=============");
         nothing = false;
     }
 
@@ -140,7 +153,9 @@ pub fn filehash<I: Seek + Read>(pbo: &mut PBO<I>, version: BISignVersion) -> Dig
         }
     }
 
-    h.finish().unwrap()
+    let out = h.finish().unwrap();
+    println!("out: {:?}", out);
+    out
 }
 
 fn display_hashes(a: BigNum, b: BigNum) -> (String, String) {
