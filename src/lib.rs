@@ -57,7 +57,7 @@ pub fn execute(input: &[String]) -> Result<(), BISignError> {
             Some(c) => {
                 c.run(matches.subcommand_matches(v).unwrap())?;
             }
-            None => println!("No command"),
+            None => panic!("Matched command, command not found. Report this as a bug"),
         },
         None => {
             println!("{}", String::from_utf8(help).unwrap());
