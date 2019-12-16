@@ -4,8 +4,6 @@ use std::path::PathBuf;
 use super::Command;
 use crate::{BISignError, BIPrivateKey};
 
-use pbo::PBO;
-
 pub struct Sign {}
 impl Command for Sign {
     fn register(&self) -> clap::App {
@@ -36,23 +34,18 @@ impl Command for Sign {
     }
 
     fn run(&self, args: &clap::ArgMatches) -> Result<(), BISignError> {
-        let pbo_path = args.value_of("file").unwrap();
-        let privatekey = BIPrivateKey::read(&mut File::open(args.value_of("private").unwrap()).expect("Failed to open private key")).expect("Failed to read private key");
-        let mut pbo_file = File::open(&pbo_path).expect("Failed to open PBO");
-        let mut pbo = PBO::read(&mut pbo_file).expect("Failed to read PBO");
-
+        let pbo_path = PathBuf::from(args.value_of("file").unwrap());
+        let private_key = BIPrivateKey::read(&mut File::open(args.value_of("private").unwrap()).expect("Failed to open private key")).expect("Failed to read private key");
         let sig_path = match args.value_of("out") {
-            Some(path) => PathBuf::from(path),
+            Some(sig) => PathBuf::from(sig),
             None => {
-                let mut path = PathBuf::from(pbo_path);
-                path.set_extension(format!("pbo.{}.bisign", privatekey.name));
-                path
+                let mut pbo_path = pbo_path.clone();
+                pbo_path.set_extension(format!("pbo.{}.bisign", private_key.name));
+                pbo_path
             }
         };
-
-        let sig = privatekey.sign(&mut pbo, args.value_of("version").unwrap().parse::<u32>().unwrap().into());
+        let sig = crate::sign(pbo_path, &private_key, args.value_of("version").unwrap().parse::<u32>().unwrap().into())?;
         sig.write(&mut File::create(&sig_path).expect("Failed to open signature file")).expect("Failed to write signature");
-
         Ok(())
     }
 }
