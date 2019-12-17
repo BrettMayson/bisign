@@ -24,6 +24,7 @@ impl Command for Verify {
             clap::Arg::with_name("signature")
                 .help("Signature to verify against")
                 .short("s")
+                .takes_value(true)
         )
     }
 
