@@ -43,11 +43,19 @@ impl Command for Verify {
         let mut pbo = PBO::read(&mut pbo_file).expect("Failed to read PBO");
 
         println!("PBO: {:?}", pbo_path);
+        let stored = pbo.checksum().unwrap();
+        let actual = pbo.gen_checksum().unwrap();
+        println!("\tStored Hash: {:?}", stored);
+        println!("\tActual Hash: {:?}", actual);
         println!("\tExtensions");
         for ext in &pbo.extensions {
             println!("\t\t{}: {}", ext.0, ext.1);
         }
         println!("\tSize: {}", pbo_size);
+
+        if stored != actual {
+            println!("Verification Failed: Invalid PBO");
+        }
 
         let sig_path = match args.value_of("signature") {
             Some(path) => PathBuf::from(path),
@@ -71,7 +79,7 @@ impl Command for Verify {
         if let Ok(()) = publickey.verify(&mut pbo, &sig) {
             println!("Verified");
         } else {
-            println!("Verification Failed");
+            println!("Verification Failed: Signature does not match");
         }
 
         Ok(())
