@@ -32,6 +32,11 @@ jobs:
     steps:
     - name: Checkout the source code
       uses: actions/checkout@master
+    - name: Install OpenSSL (Windows Only)
+      if: matrix.os == 'windows-latest'
+      run: |
+        powershell -command "Invoke-WebRequest -Uri 'http://slproweb.com/download/Win64OpenSSL-1_1_1g.msi' -OutFile openssl.msi"
+        msiexec.exe /qn /i openssl.msi
     - name: Build
       run: cargo build --verbose
     - name: Run tests
