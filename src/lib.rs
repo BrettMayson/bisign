@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
 use std::fs::File;
+use std::path::PathBuf;
 
 use pbo::PBO;
 
@@ -65,13 +65,17 @@ pub fn execute(input: &[String]) -> Result<(), BISignError> {
         },
         None => {
             println!("{}", String::from_utf8(help).unwrap());
-        },
+        }
     }
 
     Ok(())
 }
 
-pub fn sign(pbo_path: PathBuf, private_key: &BIPrivateKey, version: BISignVersion) ->Result<BISign, std::io::Error> {
+pub fn sign(
+    pbo_path: PathBuf,
+    private_key: &BIPrivateKey,
+    version: BISignVersion,
+) -> Result<BISign, std::io::Error> {
     let mut pbo_file = File::open(&pbo_path)?;
     let mut pbo = PBO::read(&mut pbo_file)?;
     Ok(private_key.sign(&mut pbo, version))

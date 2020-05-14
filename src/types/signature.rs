@@ -26,7 +26,7 @@ impl From<u32> for BISignVersion {
         match v {
             2 => BISignVersion::V2,
             3 => BISignVersion::V3,
-            _ => panic!("Invalid BiSign version")
+            _ => panic!("Invalid BiSign version"),
         }
     }
 }
@@ -36,7 +36,8 @@ impl ToString for BISignVersion {
         match self {
             BISignVersion::V2 => "V2",
             BISignVersion::V3 => "V3",
-        }.to_string()
+        }
+        .to_string()
     }
 }
 

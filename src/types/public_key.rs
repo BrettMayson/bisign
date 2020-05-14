@@ -41,13 +41,19 @@ impl BIPublicKey {
         })
     }
 
-    // @todo: example
     /// Verifies a signature against this public key.
     pub fn verify<I: Seek + Read>(
         &self,
         pbo: &mut PBO<I>,
         signature: &BISign,
     ) -> Result<(), BISignError> {
+        if self.name != signature.name {
+            return Err(BISignError::AuthorityMismatch {
+                signed: signature.name.clone(),
+                real: self.name.clone(),
+            });
+        }
+
         let (real_hash1, real_hash2, real_hash3) =
             crate::types::generate_hashes(pbo, signature.version, self.length);
 

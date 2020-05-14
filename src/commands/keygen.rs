@@ -13,7 +13,7 @@ impl Command for Keygen {
                 .required(true),
         )
     }
-    
+
     fn run(&self, args: &clap::ArgMatches) -> Result<(), BISignError> {
         let keyname = PathBuf::from(args.value_of("keyname").unwrap());
 
