@@ -7,7 +7,7 @@ pub enum BISignError {
 }
 
 impl From<std::io::Error> for BISignError {
-    fn from(e: std::io::Error) -> BISignError {
-        BISignError::IOError(e)
+    fn from(e: std::io::Error) -> Self {
+        Self::IOError(e)
     }
 }

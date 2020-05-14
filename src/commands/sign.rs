@@ -1,3 +1,4 @@
+use std::convert::TryInto;
 use std::fs::File;
 use std::path::PathBuf;
 
@@ -54,7 +55,8 @@ impl Command for Sign {
                 .unwrap()
                 .parse::<u32>()
                 .unwrap()
-                .into(),
+                .try_into()
+                .unwrap(),
         )?;
         sig.write(&mut File::create(&sig_path).expect("Failed to open signature file"))
             .expect("Failed to write signature");

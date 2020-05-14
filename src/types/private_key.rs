@@ -25,7 +25,7 @@ pub struct BIPrivateKey {
 
 impl BIPrivateKey {
     /// Reads a private key from the given input.
-    pub fn read<I: Read>(input: &mut I) -> Result<BIPrivateKey, Error> {
+    pub fn read<I: Read>(input: &mut I) -> Result<Self, Error> {
         let name = input.read_cstring()?;
         let temp = input.read_u32::<LittleEndian>()?;
         input.read_u32::<LittleEndian>()?;
@@ -71,7 +71,7 @@ impl BIPrivateKey {
         buffer = buffer.iter().rev().cloned().collect();
         let d = BigNum::from_slice(&buffer).unwrap();
 
-        Ok(BIPrivateKey {
+        Ok(Self {
             name,
             length,
             exponent,
@@ -88,10 +88,10 @@ impl BIPrivateKey {
     /// Generate a new private key with the given name and bitlength.
     ///
     /// Arma 3 uses 1024 bit keys.
-    pub fn generate<S: Into<String>>(length: u32, name: S) -> BIPrivateKey {
+    pub fn generate<S: Into<String>>(length: u32, name: S) -> Self {
         let rsa = Rsa::generate(length).expect("Failed to generate keypair");
 
-        BIPrivateKey {
+        Self {
             name: name.into(),
             length,
             exponent: 65537,

@@ -17,7 +17,7 @@ pub struct BIPublicKey {
 
 impl BIPublicKey {
     /// Reads a public key from the given input.
-    pub fn read<I: Read>(input: &mut I) -> Result<BIPublicKey, Error> {
+    pub fn read<I: Read>(input: &mut I) -> Result<Self, Error> {
         let name = input.read_cstring()?;
         let temp = input.read_u32::<LittleEndian>()?;
         input.read_u32::<LittleEndian>()?;
@@ -33,7 +33,7 @@ impl BIPublicKey {
         buffer = buffer.iter().rev().cloned().collect();
         let n = BigNum::from_slice(&buffer).unwrap();
 
-        Ok(BIPublicKey {
+        Ok(Self {
             name,
             length,
             exponent,

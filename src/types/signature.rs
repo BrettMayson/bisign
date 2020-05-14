@@ -1,3 +1,4 @@
+use std::convert::TryFrom;
 use std::io::{Error, Read, Write};
 
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
@@ -15,18 +16,19 @@ pub enum BISignVersion {
 impl Into<u32> for BISignVersion {
     fn into(self) -> u32 {
         match self {
-            BISignVersion::V2 => 2,
-            BISignVersion::V3 => 3,
+            Self::V2 => 2,
+            Self::V3 => 3,
         }
     }
 }
 
-impl From<u32> for BISignVersion {
-    fn from(v: u32) -> BISignVersion {
+impl TryFrom<u32> for BISignVersion {
+    type Error = &'static str;
+    fn try_from(v: u32) -> Result<Self, Self::Error> {
         match v {
-            2 => BISignVersion::V2,
-            3 => BISignVersion::V3,
-            _ => panic!("Invalid BiSign version"),
+            2 => Ok(Self::V2),
+            3 => Ok(Self::V3),
+            _ => Err("Invalid BiSign version"),
         }
     }
 }
@@ -34,8 +36,8 @@ impl From<u32> for BISignVersion {
 impl ToString for BISignVersion {
     fn to_string(&self) -> String {
         match self {
-            BISignVersion::V2 => "V2",
-            BISignVersion::V3 => "V3",
+            Self::V2 => "V2",
+            Self::V3 => "V3",
         }
         .to_string()
     }
@@ -56,7 +58,7 @@ pub struct BISign {
 /// BI signature (.bisign)
 impl BISign {
     /// Reads a signature from the given input.
-    pub fn read<I: Read>(input: &mut I) -> Result<BISign, BISignError> {
+    pub fn read<I: Read>(input: &mut I) -> Result<Self, BISignError> {
         let name = input.read_cstring()?;
         let temp = input.read_u32::<LittleEndian>()?;
         input.read_u32::<LittleEndian>()?;
@@ -101,7 +103,7 @@ impl BISign {
         buffer = buffer.iter().rev().cloned().collect();
         let sig3 = BigNum::from_slice(&buffer).unwrap();
 
-        Ok(BISign {
+        Ok(Self {
             version,
             name,
             length,
