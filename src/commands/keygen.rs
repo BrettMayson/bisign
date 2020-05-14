@@ -17,10 +17,8 @@ impl Command for Keygen {
     fn run(&self, args: &clap::ArgMatches) -> Result<(), BISignError> {
         let keyname = PathBuf::from(args.value_of("keyname").unwrap());
 
-        let private_key = BIPrivateKey::generate(
-            1024,
-            keyname.file_name().unwrap().to_str().unwrap().to_string(),
-        );
+        let private_key =
+            BIPrivateKey::generate(1024, keyname.file_name().unwrap().to_str().unwrap());
         let public_key = private_key.to_public_key();
         let name = keyname.file_name().unwrap().to_str().unwrap();
 

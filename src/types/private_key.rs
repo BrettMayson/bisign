@@ -88,11 +88,11 @@ impl BIPrivateKey {
     /// Generate a new private key with the given name and bitlength.
     ///
     /// Arma 3 uses 1024 bit keys.
-    pub fn generate(length: u32, name: String) -> BIPrivateKey {
+    pub fn generate<S: Into<String>>(length: u32, name: S) -> BIPrivateKey {
         let rsa = Rsa::generate(length).expect("Failed to generate keypair");
 
         BIPrivateKey {
-            name,
+            name: name.into(),
             length,
             exponent: 65537,
             n: BigNum::from_slice(&rsa.n().to_vec()).unwrap(),
@@ -157,4 +157,14 @@ impl BIPrivateKey {
         super::write_bignum(output, &self.d, (self.length / 8) as usize)?;
         Ok(())
     }
+}
+
+#[test]
+fn generate_test() {
+    BIPrivateKey::generate(1024, "test_authority");
+}
+
+#[test]
+fn to_public_test() {
+    BIPrivateKey::generate(1024, "test_authority").to_public_key();
 }
