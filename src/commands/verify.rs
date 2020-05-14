@@ -75,8 +75,8 @@ impl Command for Verify {
         println!();
         println!("Signature: {:?}", sig_path);
         println!("\tAuthority: {}", sig.name);
-        println!("\tLength: {}", sig.length);
         println!("\tVersion: {}", sig.version.to_string());
+        println!("\tLength: {}", sig.length);
         println!("\tExponent: {}", sig.exponent);
 
         println!();
