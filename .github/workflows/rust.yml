@@ -28,16 +28,30 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest]
     steps:
     - name: Checkout the source code
       uses: actions/checkout@master
-    - name: Install OpenSSL (Windows Only)
-      if: matrix.os == 'windows-latest'
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --verbose
+
+  build-windows:
+    name: Build & Test (windows-latest)
+    runs-on: windows-latest
+    steps:
+    - name: Checkout the source code
+      uses: actions/checkout@master
+    - name: Install OpenSSL
       run: |
         powershell -command "Invoke-WebRequest -Uri 'http://slproweb.com/download/Win64OpenSSL-1_1_1g.msi' -OutFile openssl.msi"
         msiexec.exe /qn /i openssl.msi
     - name: Build
+      env:
+        OPENSSL_DIR: C:\Program Files\OpenSSL-Win64
       run: cargo build --verbose
     - name: Run tests
+      env:
+        OPENSSL_DIR: C:\Program Files\OpenSSL-Win64
       run: cargo test --verbose
