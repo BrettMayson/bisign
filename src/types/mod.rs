@@ -144,20 +144,20 @@ pub fn filehash<I: Seek + Read>(pbo: &mut PBO<I>, version: BISignVersion) -> Dig
 }
 
 fn display_hashes(a: BigNum, b: BigNum) -> (String, String) {
-    let hexa = a.to_hex_str().unwrap().to_lowercase();
-    let hexb = b.to_hex_str().unwrap().to_lowercase();
+    let hex_a = a.to_hex_str().unwrap().to_lowercase();
+    let hex_b = b.to_hex_str().unwrap().to_lowercase();
 
-    if hexa.len() != hexb.len() || hexa.len() <= 40 {
-        return (hexa, hexb);
+    if hex_a.len() != hex_b.len() || hex_a.len() <= 40 {
+        return (hex_a, hex_b);
     }
 
-    let (paddinga, hasha) = hexa.split_at(hexa.len() - 40);
-    let (paddingb, hashb) = hexb.split_at(hexb.len() - 40);
+    let (padding_a, hash_a) = hex_a.split_at(hex_a.len() - 40);
+    let (paddingb, hash_b) = hex_b.split_at(hex_b.len() - 40);
 
-    if paddinga != paddingb {
-        (hexa, hexb)
+    if padding_a == paddingb {
+        (hash_a.to_string(), hash_b.to_string())
     } else {
-        (hasha.to_string(), hashb.to_string())
+        (hex_a, hex_b)
     }
 }
 
