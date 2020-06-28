@@ -46,7 +46,7 @@ impl ToString for BISignVersion {
 #[derive(Debug)]
 pub struct BISign {
     pub version: BISignVersion,
-    pub name: String,
+    pub authority: String,
     pub length: u32,
     pub exponent: u32,
     pub n: BigNum,
@@ -59,7 +59,7 @@ pub struct BISign {
 impl BISign {
     /// Reads a signature from the given input.
     pub fn read<I: Read>(input: &mut I) -> Result<Self, BISignError> {
-        let name = input.read_cstring()?;
+        let authority = input.read_cstring()?;
         let temp = input.read_u32::<LittleEndian>()?;
         input.read_u32::<LittleEndian>()?;
         input.read_u32::<LittleEndian>()?;
@@ -105,7 +105,7 @@ impl BISign {
 
         Ok(Self {
             version,
-            name,
+            authority,
             length,
             exponent,
             n,
@@ -117,7 +117,7 @@ impl BISign {
 
     /// Writes the signature to the given output.
     pub fn write<O: Write>(&self, output: &mut O) -> Result<(), Error> {
-        output.write_cstring(&self.name)?;
+        output.write_cstring(&self.authority)?;
         output.write_u32::<LittleEndian>(self.length / 8 + 20)?;
         output.write_all(b"\x06\x02\x00\x00\x00\x24\x00\x00")?;
         output.write_all(b"RSA1")?;

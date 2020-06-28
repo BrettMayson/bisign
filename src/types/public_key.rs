@@ -9,7 +9,7 @@ use crate::{BISign, BISignError};
 
 #[derive(Debug)]
 pub struct BIPublicKey {
-    pub name: String,
+    pub authority: String,
     pub length: u32,
     pub exponent: u32,
     pub n: BigNum,
@@ -18,7 +18,7 @@ pub struct BIPublicKey {
 impl BIPublicKey {
     /// Reads a public key from the given input.
     pub fn read<I: Read>(input: &mut I) -> Result<Self, Error> {
-        let name = input.read_cstring()?;
+        let authority = input.read_cstring()?;
         let temp = input.read_u32::<LittleEndian>()?;
         input.read_u32::<LittleEndian>()?;
         input.read_u32::<LittleEndian>()?;
@@ -34,7 +34,7 @@ impl BIPublicKey {
         let n = BigNum::from_slice(&buffer).unwrap();
 
         Ok(Self {
-            name,
+            authority,
             length,
             exponent,
             n,
@@ -47,32 +47,17 @@ impl BIPublicKey {
         pbo: &mut PBO<I>,
         signature: &BISign,
     ) -> Result<(), BISignError> {
-        if self.name != signature.name {
+        if self.authority != signature.authority {
             return Err(BISignError::AuthorityMismatch {
-                signed: signature.name.clone(),
-                real: self.name.clone(),
+                signed: signature.authority.clone(),
+                real: self.authority.clone(),
             });
         }
 
         let (real_hash1, real_hash2, real_hash3) =
             crate::types::generate_hashes(pbo, signature.version, self.length);
 
-        let mut ctx = BigNumContext::new().unwrap();
-
-        let exponent = BigNum::from_u32(self.exponent).unwrap();
-
-        let mut signed_hash1: BigNum = BigNum::new().unwrap();
-        signed_hash1
-            .mod_exp(&signature.sig1, &exponent, &self.n, &mut ctx)
-            .unwrap();
-        let mut signed_hash2: BigNum = BigNum::new().unwrap();
-        signed_hash2
-            .mod_exp(&signature.sig2, &exponent, &self.n, &mut ctx)
-            .unwrap();
-        let mut signed_hash3: BigNum = BigNum::new().unwrap();
-        signed_hash3
-            .mod_exp(&signature.sig3, &exponent, &self.n, &mut ctx)
-            .unwrap();
+        let (signed_hash1, signed_hash2, signed_hash3) = self.get_hashes(signature);
 
         if real_hash1 != signed_hash1 {
             let (s, r) = crate::types::display_hashes(signed_hash1, real_hash1);
@@ -92,9 +77,27 @@ impl BIPublicKey {
         Ok(())
     }
 
+    pub fn get_hashes(&self, signature: &BISign) -> (BigNum, BigNum, BigNum) {
+        let mut ctx = BigNumContext::new().unwrap();
+        let exponent = BigNum::from_u32(signature.exponent).unwrap();
+        let mut signed_hash1: BigNum = BigNum::new().unwrap();
+        signed_hash1
+            .mod_exp(&signature.sig1, &exponent, &signature.n, &mut ctx)
+            .unwrap();
+        let mut signed_hash2: BigNum = BigNum::new().unwrap();
+        signed_hash2
+            .mod_exp(&signature.sig2, &exponent, &signature.n, &mut ctx)
+            .unwrap();
+        let mut signed_hash3: BigNum = BigNum::new().unwrap();
+        signed_hash3
+            .mod_exp(&signature.sig3, &exponent, &signature.n, &mut ctx)
+            .unwrap();
+        (signed_hash1, signed_hash2, signed_hash3)
+    }
+
     /// Write public key to output.
     pub fn write<O: Write>(&self, output: &mut O) -> Result<(), Error> {
-        output.write_cstring(&self.name)?;
+        output.write_cstring(&self.authority)?;
         output.write_u32::<LittleEndian>(self.length / 8 + 20)?;
         output.write_all(b"\x06\x02\x00\x00\x00\x24\x00\x00")?;
         output.write_all(b"RSA1")?;

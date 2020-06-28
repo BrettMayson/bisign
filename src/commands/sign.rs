@@ -44,7 +44,7 @@ impl Command for Sign {
             Some(sig) => PathBuf::from(sig),
             None => {
                 let mut pbo_path = pbo_path.clone();
-                pbo_path.set_extension(format!("pbo.{}.bisign", private_key.name));
+                pbo_path.set_extension(format!("pbo.{}.bisign", private_key.authority));
                 pbo_path
             }
         };

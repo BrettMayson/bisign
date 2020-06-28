@@ -26,6 +26,12 @@ impl Command for Verify {
                     .short("s")
                     .takes_value(true),
             )
+            .arg(
+                clap::Arg::with_name("hashes")
+                    .help("Display full hash stages")
+                    .short("e")
+                    .takes_value(false),
+            )
     }
 
     fn run(&self, args: &clap::ArgMatches) -> Result<(), BISignError> {
@@ -33,16 +39,28 @@ impl Command for Verify {
             File::open(&args.value_of("public").unwrap()).expect("Failed to open public key");
         let publickey = BIPublicKey::read(&mut publickey_file).expect("Failed to read public key");
 
-        println!();
-        println!("Public Key: {:?}", &args.value_of("public").unwrap());
-        println!("\tAuthority: {}", publickey.name);
-        println!("\tLength: {}", publickey.length);
-        println!("\tExponent: {}", publickey.exponent);
-
         let pbo_path = args.value_of("file").unwrap();
         let mut pbo_file = File::open(&pbo_path).expect("Failed to open PBO");
         let pbo_size = pbo_file.metadata().unwrap().len();
         let mut pbo = PBO::read(&mut pbo_file).expect("Failed to read PBO");
+
+        let sig_path = match args.value_of("signature") {
+            Some(path) => PathBuf::from(path),
+            None => {
+                let mut path = PathBuf::from(pbo_path);
+                path.set_extension(format!("pbo.{}.bisign", publickey.authority));
+                path
+            }
+        };
+
+        let sig = BISign::read(&mut File::open(&sig_path).expect("Failed to open signature"))
+            .expect("Failed to read signature");
+
+        println!();
+        println!("Public Key: {:?}", &args.value_of("public").unwrap());
+        println!("\tAuthority: {}", publickey.authority);
+        println!("\tLength: {}", publickey.length);
+        println!("\tExponent: {}", publickey.exponent);
 
         println!();
         println!("PBO: {:?}", pbo_path);
@@ -55,29 +73,34 @@ impl Command for Verify {
             println!("\t\t{}: {}", ext.0, ext.1);
         }
         println!("\tSize: {}", pbo_size);
-
-        if stored != actual {
-            println!("Verification Failed: Invalid PBO");
+        if args.is_present("hashes") {
+            println!("\tHash Stages");
+            let (h1, h2, h3) =
+                crate::types::generate_hashes(&mut pbo, sig.version, publickey.length);
+            println!("\t\t{:?}", h1);
+            println!("\t\t{:?}", h2);
+            println!("\t\t{:?}", h3);
         }
 
-        let sig_path = match args.value_of("signature") {
-            Some(path) => PathBuf::from(path),
-            None => {
-                let mut path = PathBuf::from(pbo_path);
-                path.set_extension(format!("pbo.{}.bisign", publickey.name));
-                path
-            }
-        };
-
-        let sig = BISign::read(&mut File::open(&sig_path).expect("Failed to open signature"))
-            .expect("Failed to read signature");
+        if !pbo.extensions.contains_key("prefix") {
+            println!("Verification Failed: PBO is missing a prefix header")
+        } else if stored != actual {
+            println!("Verification Warning: PBO reports an invalid hash");
+        }
 
         println!();
         println!("Signature: {:?}", sig_path);
-        println!("\tAuthority: {}", sig.name);
+        println!("\tAuthority: {}", sig.authority);
         println!("\tVersion: {}", sig.version.to_string());
         println!("\tLength: {}", sig.length);
         println!("\tExponent: {}", sig.exponent);
+        if args.is_present("hashes") {
+            println!("\tHash Stages");
+            let (signed_hash1, signed_hash2, signed_hash3) = publickey.get_hashes(&sig);
+            println!("\t\t{:?}", signed_hash1);
+            println!("\t\t{:?}", signed_hash2);
+            println!("\t\t{:?}", signed_hash3);
+        }
 
         println!();
 

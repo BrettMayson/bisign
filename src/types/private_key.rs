@@ -11,7 +11,7 @@ use super::{BIPublicKey, BISign, BISignVersion};
 
 #[derive(Debug)]
 pub struct BIPrivateKey {
-    pub name: String,
+    pub authority: String,
     pub length: u32,
     pub exponent: u32,
     pub n: BigNum,
@@ -26,7 +26,7 @@ pub struct BIPrivateKey {
 impl BIPrivateKey {
     /// Reads a private key from the given input.
     pub fn read<I: Read>(input: &mut I) -> Result<Self, Error> {
-        let name = input.read_cstring()?;
+        let authority = input.read_cstring()?;
         let temp = input.read_u32::<LittleEndian>()?;
         input.read_u32::<LittleEndian>()?;
         input.read_u32::<LittleEndian>()?;
@@ -72,7 +72,7 @@ impl BIPrivateKey {
         let d = BigNum::from_slice(&buffer).unwrap();
 
         Ok(Self {
-            name,
+            authority,
             length,
             exponent,
             n,
@@ -85,14 +85,14 @@ impl BIPrivateKey {
         })
     }
 
-    /// Generate a new private key with the given name and bitlength.
+    /// Generate a new private key with the given authority and bitlength.
     ///
     /// Arma 3 uses 1024 bit keys.
-    pub fn generate<S: Into<String>>(length: u32, name: S) -> Self {
+    pub fn generate<S: Into<String>>(length: u32, authority: S) -> Self {
         let rsa = Rsa::generate(length).expect("Failed to generate keypair");
 
         Self {
-            name: name.into(),
+            authority: authority.into(),
             length,
             exponent: 65537,
             n: BigNum::from_slice(&rsa.n().to_vec()).unwrap(),
@@ -108,7 +108,7 @@ impl BIPrivateKey {
     /// Returns the public key for this private key.
     pub fn to_public_key(&self) -> BIPublicKey {
         BIPublicKey {
-            name: self.name.clone(),
+            authority: self.authority.clone(),
             length: self.length,
             exponent: self.exponent,
             n: BigNum::from_slice(&self.n.to_vec()).unwrap(),
@@ -130,7 +130,7 @@ impl BIPrivateKey {
 
         BISign {
             version,
-            name: self.name.clone(),
+            authority: self.authority.clone(),
             length: self.length,
             exponent: self.exponent,
             n: BigNum::from_slice(&self.n.to_vec()).unwrap(),
@@ -142,7 +142,7 @@ impl BIPrivateKey {
 
     /// Write private key to output.
     pub fn write<O: Write>(&self, output: &mut O) -> Result<(), Error> {
-        output.write_cstring(&self.name)?;
+        output.write_cstring(&self.authority)?;
         output.write_u32::<LittleEndian>(self.length / 16 * 9 + 20)?;
         output.write_all(b"\x07\x02\x00\x00\x00\x24\x00\x00")?;
         output.write_all(b"RSA2")?;

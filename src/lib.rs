@@ -25,6 +25,7 @@ lazy_static::lazy_static! {
         }
         Box::leak(Box::new(version))
     };
+    pub static ref DEBUG: bool = std::env::args().any(|x| x == "--debug");
 }
 
 pub fn execute(input: &[String]) -> Result<(), BISignError> {
