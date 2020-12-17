@@ -74,7 +74,7 @@ pub fn namehash<I: Seek + Read>(pbo: &mut PBO<I>) -> DigestBytes {
             continue;
         }
 
-        h.update(header.filename.to_lowercase().as_bytes()).unwrap();
+        h.update(header.filename.replace("/", "\\").to_lowercase().as_bytes()).unwrap();
     }
 
     h.finish().unwrap()
