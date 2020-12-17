@@ -7,18 +7,13 @@ use crate::{BIPrivateKey, BISignError};
 pub struct Keygen {}
 impl Command for Keygen {
     fn register(&self) -> clap::App {
-        clap::App::new("keygen").arg(
-            clap::Arg::with_name("keyname")
-                .help("name of the key")
-                .required(true),
-        )
+        clap::App::new("keygen").arg(clap::Arg::with_name("keyname").help("name of the key").required(true))
     }
 
     fn run(&self, args: &clap::ArgMatches) -> Result<(), BISignError> {
         let keyname = PathBuf::from(args.value_of("keyname").unwrap());
 
-        let private_key =
-            BIPrivateKey::generate(1024, keyname.file_name().unwrap().to_str().unwrap());
+        let private_key = BIPrivateKey::generate(1024, keyname.file_name().unwrap().to_str().unwrap());
         let public_key = private_key.to_public_key();
         let name = keyname.file_name().unwrap().to_str().unwrap();
 

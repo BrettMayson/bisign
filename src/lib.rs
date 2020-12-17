@@ -72,11 +72,7 @@ pub fn execute(input: &[String]) -> Result<(), BISignError> {
     Ok(())
 }
 
-pub fn sign(
-    pbo_path: PathBuf,
-    private_key: &BIPrivateKey,
-    version: BISignVersion,
-) -> Result<BISign, std::io::Error> {
+pub fn sign(pbo_path: PathBuf, private_key: &BIPrivateKey, version: BISignVersion) -> Result<BISign, std::io::Error> {
     let mut pbo_file = File::open(&pbo_path)?;
     let mut pbo = PBO::read(&mut pbo_file)?;
     Ok(private_key.sign(&mut pbo, version))

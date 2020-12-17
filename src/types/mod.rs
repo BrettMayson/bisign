@@ -13,11 +13,7 @@ use openssl::bn::BigNum;
 use openssl::hash::{DigestBytes, Hasher, MessageDigest};
 use pbo::PBO;
 
-pub fn generate_hashes<I: Seek + Read>(
-    pbo: &mut PBO<I>,
-    version: BISignVersion,
-    length: u32,
-) -> (BigNum, BigNum, BigNum) {
+pub fn generate_hashes<I: Seek + Read>(pbo: &mut PBO<I>, version: BISignVersion, length: u32) -> (BigNum, BigNum, BigNum) {
     let checksum = pbo.checksum().unwrap();
     let hash1 = checksum.as_slice();
 
@@ -74,7 +70,8 @@ pub fn namehash<I: Seek + Read>(pbo: &mut PBO<I>) -> DigestBytes {
             continue;
         }
 
-        h.update(header.filename.replace("/", "\\").to_lowercase().as_bytes()).unwrap();
+        h.update(header.filename.replace("/", "\\").to_lowercase().as_bytes())
+            .unwrap();
     }
 
     h.finish().unwrap()

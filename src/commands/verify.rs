@@ -15,11 +15,7 @@ impl Command for Verify {
                     .help("Public key to verify with")
                     .required(true),
             )
-            .arg(
-                clap::Arg::with_name("file")
-                    .help("PBO file to verify")
-                    .required(true),
-            )
+            .arg(clap::Arg::with_name("file").help("PBO file to verify").required(true))
             .arg(
                 clap::Arg::with_name("signature")
                     .help("Signature to verify against")
@@ -35,8 +31,7 @@ impl Command for Verify {
     }
 
     fn run(&self, args: &clap::ArgMatches) -> Result<(), BISignError> {
-        let mut publickey_file =
-            File::open(&args.value_of("public").unwrap()).expect("Failed to open public key");
+        let mut publickey_file = File::open(&args.value_of("public").unwrap()).expect("Failed to open public key");
         let publickey = BIPublicKey::read(&mut publickey_file).expect("Failed to read public key");
 
         let pbo_path = args.value_of("file").unwrap();
@@ -53,8 +48,8 @@ impl Command for Verify {
             }
         };
 
-        let sig = BISign::read(&mut File::open(&sig_path).expect("Failed to open signature"))
-            .expect("Failed to read signature");
+        let sig =
+            BISign::read(&mut File::open(&sig_path).expect("Failed to open signature")).expect("Failed to read signature");
 
         println!();
         println!("Public Key: {:?}", &args.value_of("public").unwrap());
@@ -75,8 +70,7 @@ impl Command for Verify {
         println!("\tSize: {}", pbo_size);
         if args.is_present("hashes") {
             println!("\tHash Stages");
-            let (h1, h2, h3) =
-                crate::types::generate_hashes(&mut pbo, sig.version, publickey.length);
+            let (h1, h2, h3) = crate::types::generate_hashes(&mut pbo, sig.version, publickey.length);
             println!("\t\t{:?}", h1);
             println!("\t\t{:?}", h2);
             println!("\t\t{:?}", h3);

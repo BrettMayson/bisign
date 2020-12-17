@@ -14,11 +14,7 @@ impl Command for Sign {
                     .help("Private key to sign with")
                     .required(true),
             )
-            .arg(
-                clap::Arg::with_name("file")
-                    .help("PBO file to sign")
-                    .required(true),
-            )
+            .arg(clap::Arg::with_name("file").help("PBO file to sign").required(true))
             .arg(
                 clap::Arg::with_name("out")
                     .help("Output location of signature")
@@ -36,10 +32,9 @@ impl Command for Sign {
 
     fn run(&self, args: &clap::ArgMatches) -> Result<(), BISignError> {
         let pbo_path = PathBuf::from(args.value_of("file").unwrap());
-        let private_key = BIPrivateKey::read(
-            &mut File::open(args.value_of("private").unwrap()).expect("Failed to open private key"),
-        )
-        .expect("Failed to read private key");
+        let private_key =
+            BIPrivateKey::read(&mut File::open(args.value_of("private").unwrap()).expect("Failed to open private key"))
+                .expect("Failed to read private key");
         let sig_path = match args.value_of("out") {
             Some(sig) => PathBuf::from(sig),
             None => {
@@ -51,12 +46,7 @@ impl Command for Sign {
         let sig = crate::sign(
             pbo_path,
             &private_key,
-            args.value_of("version")
-                .unwrap()
-                .parse::<u32>()
-                .unwrap()
-                .try_into()
-                .unwrap(),
+            args.value_of("version").unwrap().parse::<u32>().unwrap().try_into().unwrap(),
         )?;
         sig.write(&mut File::create(&sig_path).expect("Failed to open signature file"))
             .expect("Failed to write signature");
