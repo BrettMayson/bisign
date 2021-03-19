@@ -114,6 +114,7 @@ pub fn filehash<I: Seek + Read>(pbo: &mut PBO<I>, version: BISignVersion) -> Dig
                     && ext != "cfg"
                     && ext != "sqs"
                     && ext != "h"
+                    && ext != "sqfc"
                 {
                     continue;
                 }
