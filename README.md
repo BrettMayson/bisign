@@ -1,3 +1,11 @@
+# USE HEMTT
+
+BISign is reimplemented in [HEMTT](https://github.com/BrettMayson/HEMTT) with even more stuff!
+
+Use `hemtt utils verify`!
+
+This repo is dead now.
+
 # BISign - Signature Tool for Bohemia Interactive PBOs
 
 Create keys and signatures, and verify PBO's with more accuracy that DSUtils.
